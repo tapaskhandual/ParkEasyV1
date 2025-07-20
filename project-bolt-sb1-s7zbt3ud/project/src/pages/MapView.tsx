@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { dbHelpers } from '../lib/supabase'
 import Map from '../components/Map'
+import BookingForm from '../components/BookingForm'
 import { ParkingSpace, Location } from '../types'
 import { Search, Filter, MapPin } from 'lucide-react'
 
@@ -17,6 +18,7 @@ const MapView: React.FC = () => {
     maxPrice: '',
     amenities: [] as string[]
   })
+  const [showBookingForm, setShowBookingForm] = useState(false)
 
   useEffect(() => {
     loadParkingSpaces()
@@ -40,6 +42,9 @@ const MapView: React.FC = () => {
 
   const handleSpaceSelect = (space: ParkingSpace) => {
     setSelectedSpace(space)
+    if (user && user.user_type === 'customer') {
+      setShowBookingForm(true)
+    }
   }
 
   const handleSearch = async () => {
@@ -189,6 +194,18 @@ const MapView: React.FC = () => {
                       )}
                     </div>
                   )}
+
+                  {user && user.user_type === 'customer' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleSpaceSelect(space)
+                      }}
+                      className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-md text-sm font-medium transition-colors"
+                    >
+                      Book Now
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -207,6 +224,23 @@ const MapView: React.FC = () => {
           className="h-full"
         />
       </div>
+
+      {/* Booking Form Modal */}
+      {showBookingForm && selectedSpace && (
+        <BookingForm
+          parkingSpace={selectedSpace}
+          onClose={() => {
+            setShowBookingForm(false)
+            setSelectedSpace(null)
+          }}
+          onBookingSuccess={(bookingId) => {
+            setShowBookingForm(false)
+            setSelectedSpace(null)
+            // Could add success message here
+            alert('Booking created successfully! Redirecting to payment...')
+          }}
+        />
+      )}
     </div>
   )
 }
