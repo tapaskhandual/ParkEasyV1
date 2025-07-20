@@ -36,7 +36,23 @@ const SignIn: React.FC = () => {
       navigate(from, { replace: true })
     } catch (error: any) {
       console.error('Sign in error:', error)
-      setError(error.message || 'Failed to sign in')
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to sign in'
+      
+      if (error.message) {
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.'
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Please check your email and confirm your account before signing in.'
+        } else if (error.message.includes('Too many requests')) {
+          errorMessage = 'Too many login attempts. Please wait a few minutes and try again.'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
+      setError(errorMessage)
     }
   }
 
