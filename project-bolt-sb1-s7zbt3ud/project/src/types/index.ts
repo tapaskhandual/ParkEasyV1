@@ -1,6 +1,5 @@
 export interface User {
   id: string
-  email: string
   user_type: 'customer' | 'owner' | 'admin'
   full_name: string
   phone_number?: string

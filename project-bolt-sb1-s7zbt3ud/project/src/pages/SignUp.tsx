@@ -23,6 +23,7 @@ const SignUp: React.FC = () => {
     bank_account_holder_name: ''
   })
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -56,6 +57,20 @@ const SignUp: React.FC = () => {
       return
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    // Validate phone number format (basic validation)
+    const phoneRegex = /^[+]?[\d\s\-\(\)]{10,}$/
+    if (!phoneRegex.test(formData.phone_number.trim())) {
+      setError('Please enter a valid phone number')
+      return
+    }
+
     try {
       await signUp(formData.email, formData.password, {
         user_type: formData.user_type,
@@ -73,7 +88,25 @@ const SignUp: React.FC = () => {
       navigate('/dashboard')
     } catch (error: any) {
       console.error('Sign up error:', error)
-      setError(error.message || 'Failed to create account')
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to create account'
+      
+      if (error.message) {
+        if (error.message.includes('User already registered')) {
+          errorMessage = 'An account with this email already exists. Please sign in instead.'
+        } else if (error.message.includes('Password should be at least')) {
+          errorMessage = 'Password must be at least 6 characters long'
+        } else if (error.message.includes('Invalid email')) {
+          errorMessage = 'Please enter a valid email address'
+        } else if (error.message.includes('phone_number')) {
+          errorMessage = 'Phone number is already taken. Please use a different phone number.'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
+      setError(errorMessage)
     }
   }
 

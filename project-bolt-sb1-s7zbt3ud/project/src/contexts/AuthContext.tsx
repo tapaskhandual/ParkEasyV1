@@ -59,7 +59,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadUserProfile = async (userId: string) => {
     try {
       const profile = await dbHelpers.getUserProfile(userId)
-      setUser(profile)
+      if (profile) {
+        setUser(profile)
+      } else {
+        // Profile doesn't exist - user might have been created in auth but profile creation failed
+        console.warn('User profile not found for authenticated user:', userId)
+        setUser(null)
+      }
     } catch (error) {
       console.error('Error loading user profile:', error)
       setUser(null)
@@ -80,10 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data.user) {
         // Create user profile
-        await dbHelpers.createUserProfile(data.user.id, {
-          ...userData,
-          email: data.user.email,
-        })
+        await dbHelpers.createUserProfile(data.user.id, userData)
       }
     } catch (error) {
       console.error('Error signing up:', error)

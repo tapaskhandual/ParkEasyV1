@@ -37,7 +37,13 @@ export const dbHelpers = {
       .eq('id', userId)
       .single()
     
-    if (error) throw error
+    if (error) {
+      // If profile doesn't exist, return null instead of throwing
+      if (error.code === 'PGRST116') {
+        return null
+      }
+      throw error
+    }
     return data
   },
 
