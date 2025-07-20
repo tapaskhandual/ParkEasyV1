@@ -32,12 +32,13 @@ VITE_SUPABASE_ANON_KEY=your_public_anon_key_here
 
 ### 4. Setup Database Schema
 
-Run the SQL migrations in your Supabase SQL editor in this order:
+Run the complete database setup script in your Supabase SQL editor:
 
-1. `db/20250719110533_ivory_frost.sql` - Creates user profiles table
-2. `db/20250719110542_throbbing_garden.sql` - Creates parking spaces tables  
-3. `db/20250719110555_tight_bar.sql` - Creates bookings and payments tables
-4. `db/20250719110614_jolly_prism.sql` - Additional configurations
+1. Copy the contents of `setup-database.sql`
+2. Paste it into your Supabase SQL editor
+3. Click "Run" to execute the script
+
+This will create all necessary tables, policies, and indexes for the ParkEasy application.
 
 ### 5. Test Configuration
 

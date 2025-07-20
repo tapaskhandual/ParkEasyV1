@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { dbHelpers } from '../lib/supabase'
 import { ParkingSpace, Booking } from '../types'
-import { Car, MapPin, Calendar, IndianRupee, Users, TrendingUp } from 'lucide-react'
+import ParkingSpaceForm from '../components/ParkingSpaceForm'
+import { Car, MapPin, Calendar, IndianRupee, Users, TrendingUp, Plus } from 'lucide-react'
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth()
@@ -15,6 +16,7 @@ const Dashboard: React.FC = () => {
     totalRevenue: 0,
     activeBookings: 0
   })
+  const [showAddSpaceForm, setShowAddSpaceForm] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -72,6 +74,12 @@ const Dashboard: React.FC = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSpaceAdded = () => {
+    // Refresh dashboard data after adding a new space
+    loadDashboardData()
+    setShowAddSpaceForm(false)
   }
 
   if (loading) {
@@ -250,9 +258,20 @@ const Dashboard: React.FC = () => {
         {/* Parking Spaces (for owners) or Quick Actions (for customers) */}
         <div className="bg-white rounded-lg shadow-sm border">
           <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {user?.user_type === 'owner' ? 'Your Parking Spaces' : 'Quick Actions'}
-            </h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {user?.user_type === 'owner' ? 'Your Parking Spaces' : 'Quick Actions'}
+              </h2>
+              {user?.user_type === 'owner' && (
+                <button
+                  onClick={() => setShowAddSpaceForm(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Space
+                </button>
+              )}
+            </div>
           </div>
           <div className="p-6">
             {user?.user_type === 'owner' ? (
@@ -313,6 +332,14 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Parking Space Form Modal */}
+      {showAddSpaceForm && (
+        <ParkingSpaceForm
+          onClose={() => setShowAddSpaceForm(false)}
+          onSuccess={handleSpaceAdded}
+        />
+      )}
     </div>
   )
 }

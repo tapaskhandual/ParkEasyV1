@@ -8,6 +8,7 @@ import SignUp from './pages/SignUp'
 import SignIn from './pages/SignIn'
 import Dashboard from './pages/Dashboard'
 import MapView from './pages/MapView'
+import PaymentSuccess from './pages/PaymentSuccess'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/map" element={<MapView />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route
               path="/dashboard"
               element={

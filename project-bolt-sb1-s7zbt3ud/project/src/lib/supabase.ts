@@ -211,5 +211,43 @@ export const dbHelpers = {
   async updatePlatformStatistics() {
     const { error } = await supabase.rpc('update_platform_statistics')
     if (error) throw error
+  },
+
+  // Additional helper functions for payment processing
+  async getPaymentsByBookingId(bookingId: string) {
+    const { data, error } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('booking_id', bookingId)
+    
+    if (error) throw error
+    return data || []
+  },
+
+  async getBookingById(bookingId: string) {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        parking_space:parking_spaces(title, address, city),
+        customer:user_profiles(full_name, phone_number)
+      `)
+      .eq('id', bookingId)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  async updateBooking(bookingId: string, updates: any) {
+    const { data, error } = await supabase
+      .from('bookings')
+      .update(updates)
+      .eq('id', bookingId)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
   }
 }
