@@ -1,7 +1,25 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 import { supabase, dbHelpers } from '../lib/supabase'
-import { User } from '../types'
+
+// Define User interface directly here to avoid import issues
+interface User {
+  id: string
+  user_type: 'customer' | 'owner' | 'admin'
+  full_name: string
+  phone_number?: string
+  address?: string
+  city?: string
+  state?: string
+  pincode?: string
+  upi_id?: string
+  bank_account_number?: string
+  bank_ifsc_code?: string
+  bank_account_holder_name?: string
+  is_verified: boolean
+  created_at: string
+  updated_at: string
+}
 
 interface AuthContextType {
   user: User | null

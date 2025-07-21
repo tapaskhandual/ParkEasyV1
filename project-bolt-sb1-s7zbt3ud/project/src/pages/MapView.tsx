@@ -3,8 +3,34 @@ import { useAuth } from '../contexts/AuthContext'
 import { dbHelpers } from '../lib/supabase'
 import Map from '../components/Map'
 import BookingForm from '../components/BookingForm'
-import { ParkingSpace, Location } from '../types'
 import { Search, Filter, MapPin } from 'lucide-react'
+
+// Define types directly here
+interface ParkingSpace {
+  id: string
+  owner_id: string
+  title: string
+  description?: string
+  address: string
+  city: string
+  state: string
+  pincode: string
+  latitude: number
+  longitude: number
+  hourly_rate: number
+  total_slots: number
+  available_slots: number
+  amenities?: string[]
+  images?: string[]
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+interface Location {
+  latitude: number
+  longitude: number
+}
 
 const MapView: React.FC = () => {
   const { user } = useAuth()

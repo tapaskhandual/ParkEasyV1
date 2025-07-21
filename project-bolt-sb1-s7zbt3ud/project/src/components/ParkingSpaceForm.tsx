@@ -1,8 +1,23 @@
 import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { dbHelpers } from '../lib/supabase'
-import { ParkingSpaceFormData } from '../types'
 import { MapPin, Upload, X, Plus, Trash2, Car, IndianRupee } from 'lucide-react'
+
+// Define types directly here
+interface ParkingSpaceFormData {
+  title: string
+  description: string
+  address: string
+  city: string
+  state: string
+  pincode: string
+  latitude: number
+  longitude: number
+  hourly_rate: number
+  total_slots: number
+  amenities: string[]
+  images: string[]
+}
 
 interface ParkingSpaceFormProps {
   onClose: () => void

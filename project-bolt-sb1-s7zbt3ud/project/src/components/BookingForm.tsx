@@ -2,8 +2,38 @@ import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { dbHelpers } from '../lib/supabase'
 import { instamojoService } from '../lib/instamojo'
-import { ParkingSpace, BookingFormData } from '../types'
 import { Clock, Car, IndianRupee, MapPin, X, Calendar } from 'lucide-react'
+
+// Define types directly here
+interface ParkingSpace {
+  id: string
+  owner_id: string
+  title: string
+  description?: string
+  address: string
+  city: string
+  state: string
+  pincode: string
+  latitude: number
+  longitude: number
+  hourly_rate: number
+  total_slots: number
+  available_slots: number
+  amenities?: string[]
+  images?: string[]
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+interface BookingFormData {
+  start_time: string
+  end_time: string
+  vehicle_number: string
+  vehicle_type: string
+  special_requests?: string
+  total_amount: number
+}
 
 interface BookingFormProps {
   parkingSpace: ParkingSpace

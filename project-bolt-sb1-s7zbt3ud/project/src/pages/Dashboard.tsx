@@ -1,9 +1,47 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { dbHelpers } from '../lib/supabase'
-import { ParkingSpace, Booking } from '../types'
 import ParkingSpaceForm from '../components/ParkingSpaceForm'
 import { Car, MapPin, Calendar, IndianRupee, Users, TrendingUp, Plus } from 'lucide-react'
+
+// Define types directly here
+interface ParkingSpace {
+  id: string
+  owner_id: string
+  title: string
+  description?: string
+  address: string
+  city: string
+  state: string
+  pincode: string
+  latitude: number
+  longitude: number
+  hourly_rate: number
+  total_slots: number
+  available_slots: number
+  amenities?: string[]
+  images?: string[]
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+interface Booking {
+  id: string
+  customer_id: string
+  parking_space_id: string
+  start_time: string
+  end_time: string
+  vehicle_number: string
+  vehicle_type: string
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  total_amount: number
+  platform_fee: number
+  owner_amount: number
+  special_requests?: string
+  created_at: string
+  updated_at: string
+}
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth()
