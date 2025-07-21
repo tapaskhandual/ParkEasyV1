@@ -17,6 +17,7 @@ interface ParkingSpace {
   latitude: number
   longitude: number
   hourly_rate: number
+  space_type?: string
   total_slots: number
   available_slots: number
   amenities?: string[]
@@ -27,8 +28,10 @@ interface ParkingSpace {
 }
 
 interface BookingFormData {
+  parking_space_id: string
   start_time: string
   end_time: string
+  duration_hours: number
   vehicle_number: string
   vehicle_type: string
   special_requests?: string

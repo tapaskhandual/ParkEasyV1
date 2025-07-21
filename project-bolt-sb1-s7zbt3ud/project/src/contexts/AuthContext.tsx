@@ -2,8 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User as SupabaseUser } from '@supabase/supabase-js'
 import { supabase, dbHelpers } from '../lib/supabase'
 
-// Define User interface directly here to avoid import issues
-interface User {
+// Define and export User interface
+export interface User {
   id: string
   user_type: 'customer' | 'owner' | 'admin'
   full_name: string

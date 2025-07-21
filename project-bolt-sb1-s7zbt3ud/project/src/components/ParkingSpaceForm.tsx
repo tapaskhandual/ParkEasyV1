@@ -14,6 +14,7 @@ interface ParkingSpaceFormData {
   latitude: number
   longitude: number
   hourly_rate: number
+  space_type: string
   total_slots: number
   amenities: string[]
   images: string[]

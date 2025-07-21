@@ -17,6 +17,7 @@ interface ParkingSpace {
   latitude: number
   longitude: number
   hourly_rate: number
+  space_type?: string
   total_slots: number
   available_slots: number
   amenities?: string[]
@@ -35,12 +36,18 @@ interface Booking {
   vehicle_number: string
   vehicle_type: string
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  payment_status?: 'pending' | 'paid' | 'failed'
   total_amount: number
   platform_fee: number
   owner_amount: number
   special_requests?: string
   created_at: string
   updated_at: string
+  parking_space?: {
+    title: string
+    address: string
+    city: string
+  }
 }
 
 const Dashboard: React.FC = () => {
@@ -283,103 +290,102 @@ const Dashboard: React.FC = () => {
                         booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {booking.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Parking Spaces (for owners) or Quick Actions (for customers) */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="p-6 border-b">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {user?.user_type === 'owner' ? 'Your Parking Spaces' : 'Quick Actions'}
-              </h2>
-              {user?.user_type === 'owner' && (
-                <button
-                  onClick={() => setShowAddSpaceForm(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Space
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="p-6">
-            {user?.user_type === 'owner' ? (
-              parkingSpaces.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">No parking spaces listed yet</p>
-              ) : (
-                <div className="space-y-4">
-                  {parkingSpaces.slice(0, 5).map((space) => (
-                    <div key={space.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-gray-900">{space.title}</p>
-                        <p className="text-sm text-gray-600">{space.address}</p>
-                        <p className="text-xs text-gray-500">
-                          {space.available_slots}/{space.total_slots} available
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">₹{space.hourly_rate}/hr</p>
-                        <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                          space.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {space.is_active ? 'Active' : 'Inactive'}
+                          {booking.status}
                         </span>
                       </div>
                     </div>
                   ))}
                 </div>
-              )
-            ) : (
-              <div className="space-y-4">
-                <a
-                  href="/map"
-                  className="block p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <MapPin className="h-6 w-6 text-blue-600 mr-3" />
-                    <div>
-                      <p className="font-medium text-blue-900">Find Parking</p>
-                      <p className="text-sm text-blue-600">Search for available parking spaces</p>
-                    </div>
-                  </div>
-                </a>
-                
-                <a
-                  href="/bookings"
-                  className="block p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <Calendar className="h-6 w-6 text-green-600 mr-3" />
-                    <div>
-                      <p className="font-medium text-green-900">My Bookings</p>
-                      <p className="text-sm text-green-600">View and manage your bookings</p>
-                    </div>
-                  </div>
-                </a>
+              )}
+            </div>
+
+          {/* Parking Spaces (for owners) or Quick Actions (for customers) */}
+          <div className="bg-white rounded-lg shadow-sm border">
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {user?.user_type === 'owner' ? 'Your Parking Spaces' : 'Quick Actions'}
+                </h2>
+                {user?.user_type === 'owner' && (
+                  <button
+                    onClick={() => setShowAddSpaceForm(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Space
+                  </button>
+                )}
               </div>
-            )}
+            </div>
+            <div className="p-6">
+              {user?.user_type === 'owner' ? (
+                parkingSpaces.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">No parking spaces listed yet</p>
+                ) : (
+                  <div className="space-y-4">
+                    {parkingSpaces.slice(0, 5).map((space) => (
+                      <div key={space.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-gray-900">{space.title}</p>
+                          <p className="text-sm text-gray-600">{space.address}</p>
+                          <p className="text-xs text-gray-500">
+                            {space.available_slots}/{space.total_slots} available
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-gray-900">₹{space.hourly_rate}/hr</p>
+                          <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                            space.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {space.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : (
+                <div className="space-y-4">
+                  <a
+                    href="/map"
+                    className="block p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <MapPin className="h-6 w-6 text-blue-600 mr-3" />
+                      <div>
+                        <p className="font-medium text-blue-900">Find Parking</p>
+                        <p className="text-sm text-blue-600">Search for available parking spaces</p>
+                      </div>
+                    </div>
+                  </a>
+                  
+                  <a
+                    href="/bookings"
+                    className="block p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                  >
+                    <div className="flex items-center">
+                      <Calendar className="h-6 w-6 text-green-600 mr-3" />
+                      <div>
+                        <p className="font-medium text-green-900">My Bookings</p>
+                        <p className="text-sm text-green-600">View and manage your bookings</p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Add Parking Space Form Modal */}
+        {showAddSpaceForm && (
+          <ParkingSpaceForm
+            onClose={() => setShowAddSpaceForm(false)}
+            onSuccess={handleSpaceAdded}
+          />
+        )}
       </div>
+    )
+  }
 
-      {/* Add Parking Space Form Modal */}
-      {showAddSpaceForm && (
-        <ParkingSpaceForm
-          onClose={() => setShowAddSpaceForm(false)}
-          onSuccess={handleSpaceAdded}
-        />
-      )}
-    </div>
-  )
-}
-
-export default Dashboard
+  export default Dashboard
