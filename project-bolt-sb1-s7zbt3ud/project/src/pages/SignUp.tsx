@@ -33,6 +33,16 @@ const SignUp: React.FC = () => {
   // If Supabase is not configured, show error and don't disable buttons
   const shouldDisableButtons = supabaseConfigured ? (loading || localLoading) : false
 
+  // Debug logging
+  console.log('SignUp Debug:', {
+    loading,
+    localLoading,
+    supabaseConfigured,
+    shouldDisableButtons,
+    supabaseUrl: import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING',
+    supabaseKey: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'
+  })
+
   // Force reset function to clear stuck states
   const forceReset = () => {
     console.log('🔄 Force resetting all states...')
@@ -51,6 +61,7 @@ const SignUp: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('🚀 SignUp handleSubmit called')
     setError('')
     setSuccess('')
 
@@ -88,22 +99,36 @@ const SignUp: React.FC = () => {
     }
 
     // Validation
+    console.log('📝 Validating form data:', {
+      email: formData.email,
+      password: formData.password ? 'SET' : 'EMPTY',
+      confirmPassword: formData.confirmPassword ? 'SET' : 'EMPTY',
+      full_name: formData.full_name,
+      phone_number: formData.phone_number,
+      passwordMatch: formData.password === formData.confirmPassword,
+      passwordLength: formData.password.length
+    })
+
     if (formData.password !== formData.confirmPassword) {
+      console.log('❌ Validation failed: Passwords do not match')
       setError('Passwords do not match')
       return
     }
 
     if (formData.password.length < 6) {
+      console.log('❌ Validation failed: Password too short')
       setError('Password must be at least 6 characters')
       return
     }
 
     if (!formData.full_name.trim()) {
+      console.log('❌ Validation failed: Full name required')
       setError('Full name is required')
       return
     }
 
     if (!formData.phone_number.trim()) {
+      console.log('❌ Validation failed: Phone number required')
       setError('Phone number is required')
       return
     }
@@ -252,6 +277,10 @@ const SignUp: React.FC = () => {
             {!supabaseConfigured && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
                 ⚠️ Supabase configuration missing. Please check your environment variables.
+                <div className="text-xs mt-1">
+                  URL: {import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING'} | 
+                  Key: {import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'}
+                </div>
               </div>
             )}
 
@@ -521,6 +550,13 @@ const SignUp: React.FC = () => {
               <button
                 type="submit"
                 disabled={shouldDisableButtons}
+                onClick={(e) => {
+                  console.log('🖱️ Create Account button clicked', { shouldDisableButtons, disabled: shouldDisableButtons })
+                  if (shouldDisableButtons) {
+                    e.preventDefault()
+                    console.log('❌ Button click prevented due to disabled state')
+                  }
+                }}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {(loading || localLoading) ? 'Creating Account...' : 'Create Account'}
@@ -537,6 +573,22 @@ const SignUp: React.FC = () => {
                   </button>
                 </div>
               )}
+              
+              {/* Debug Test Button */}
+              <div className="mt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    console.log('🧪 Debug test button clicked')
+                    console.log('Form data:', formData)
+                    console.log('Should disable buttons:', shouldDisableButtons)
+                    console.log('Loading states:', { loading, localLoading })
+                  }}
+                  className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded"
+                >
+                  🧪 Debug Test
+                </button>
+              </div>
             </div>
 
             {/* Debug Information */}
