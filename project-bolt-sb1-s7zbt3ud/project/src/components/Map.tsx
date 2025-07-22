@@ -2,8 +2,35 @@ import React, { useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import { Icon } from 'leaflet'
 import { MapPin, Navigation, Car, Clock, IndianRupee } from 'lucide-react'
-import { ParkingSpace, Location } from '../types'
 import 'leaflet/dist/leaflet.css'
+
+// Define types directly here
+interface ParkingSpace {
+  id: string
+  owner_id: string
+  title: string
+  description?: string
+  address: string
+  city: string
+  state: string
+  pincode: string
+  latitude: number
+  longitude: number
+  hourly_rate: number
+  space_type?: string
+  total_slots: number
+  available_slots: number
+  amenities?: string[]
+  images?: string[]
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+interface Location {
+  latitude: number
+  longitude: number
+}
 
 // Fix for default markers in react-leaflet
 delete (Icon.Default.prototype as any)._getIconUrl
