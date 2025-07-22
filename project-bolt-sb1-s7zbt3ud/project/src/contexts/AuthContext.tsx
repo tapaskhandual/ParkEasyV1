@@ -51,6 +51,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true
     
+    // Add a safety timeout to ensure loading doesn't stay true forever
+    const loadingTimeout = setTimeout(() => {
+      if (mounted) {
+        console.log('⚠️ Loading timeout reached, forcing loading state to false')
+        setLoading(false)
+      }
+    }, 10000) // 10 second timeout
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return
@@ -61,6 +69,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setLoading(false)
       }
+      
+      // Clear the timeout since we got a response
+      clearTimeout(loadingTimeout)
+    }).catch((error) => {
+      console.error('❌ Error getting initial session:', error)
+      if (mounted) {
+        setLoading(false)
+      }
+      clearTimeout(loadingTimeout)
     })
 
     // Listen for auth changes
@@ -82,6 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false
+      clearTimeout(loadingTimeout)
       subscription.unsubscribe()
     }
   }, [])
@@ -114,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('❌ Error loading user profile:', error)
       
       // If it's a database error, might be an orphaned session
-      if (error.message && error.message.includes('not found')) {
+      if (error && error.message && error.message.includes('not found')) {
         console.log('🧹 Clearing potentially orphaned session due to error...')
         try {
           await supabase.auth.signOut()
@@ -128,6 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(null)
     } finally {
+      // Always ensure loading is false, regardless of success or failure
+      console.log('🏁 Setting loading to false in loadUserProfile')
       setLoading(false)
     }
   }

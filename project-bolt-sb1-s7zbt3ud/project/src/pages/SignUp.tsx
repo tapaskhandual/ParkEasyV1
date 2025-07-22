@@ -27,6 +27,12 @@ const SignUp: React.FC = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  // Check if Supabase is configured properly
+  const supabaseConfigured = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
+
+  // If Supabase is not configured, show error and don't disable buttons
+  const shouldDisableButtons = supabaseConfigured ? (loading || localLoading) : false
+
   // Force reset function to clear stuck states
   const forceReset = () => {
     console.log('🔄 Force resetting all states...')
@@ -243,6 +249,12 @@ const SignUp: React.FC = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {!supabaseConfigured && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+                ⚠️ Supabase configuration missing. Please check your environment variables.
+              </div>
+            )}
+
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
                 {error}
@@ -508,11 +520,23 @@ const SignUp: React.FC = () => {
             <div>
               <button
                 type="submit"
-                disabled={loading || localLoading}
+                disabled={shouldDisableButtons}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {(loading || localLoading) ? 'Creating Account...' : 'Create Account'}
               </button>
+              
+              {shouldDisableButtons && (
+                <div className="mt-2 text-center">
+                  <button
+                    type="button"
+                    onClick={forceReset}
+                    className="text-xs text-blue-600 hover:text-blue-700 underline"
+                  >
+                    Button disabled? Click here to reset
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Debug Information */}
