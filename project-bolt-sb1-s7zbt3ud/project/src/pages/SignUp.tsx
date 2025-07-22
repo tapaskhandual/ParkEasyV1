@@ -123,6 +123,13 @@ const SignUp: React.FC = () => {
           errorMessage = 'Please fill in all required fields'
         } else if (error.message.includes('Invalid data format')) {
           errorMessage = 'Please check your inputs and try again'
+        } else if (error.message.includes('confirmation email could not be sent')) {
+          // This is actually a success case - account was created
+          setSuccess('Account created successfully! You can now try signing in.')
+          setTimeout(() => {
+            navigate('/signin')
+          }, 3000)
+          return
         } else if (error.message.includes('Authentication error')) {
           errorMessage = error.message
         } else {

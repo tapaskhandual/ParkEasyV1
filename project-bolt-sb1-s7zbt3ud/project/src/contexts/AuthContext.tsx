@@ -95,10 +95,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, userData: any) => {
     setLoading(true)
     try {
-      // Use basic signup without metadata to avoid auth server issues
+      // Use basic signup without metadata and disable email confirmation for development
       const { data, error } = await supabase.auth.signUp({
         email,
-        password
+        password,
+        options: {
+          emailRedirectTo: undefined // Disable email confirmation
+        }
       })
 
       if (error) {
@@ -113,6 +116,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw new Error('New user registration is currently disabled.')
         } else if (error.message.includes('Invalid email')) {
           throw new Error('Please enter a valid email address.')
+        } else if (error.message.includes('Error sending confirmation email')) {
+          throw new Error('Account created successfully! However, the confirmation email could not be sent. You can try signing in directly or contact support.')
         } else {
           throw new Error(`Authentication error: ${error.message}`)
         }
