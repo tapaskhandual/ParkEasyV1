@@ -381,6 +381,48 @@ const SignUp: React.FC = () => {
                 {loading ? 'Creating Account...' : 'Create Account'}
               </button>
             </div>
+
+            {/* Debug Information */}
+            <div className="mt-6 p-4 bg-gray-50 rounded-md">
+              <h4 className="text-sm font-medium text-gray-900 mb-2">🔧 Debug Information</h4>
+              <div className="text-xs text-gray-600 space-y-1">
+                <p><strong>Supabase URL:</strong> {import.meta.env.VITE_SUPABASE_URL ? '✅ Set' : '❌ Missing'}</p>
+                <p><strong>Supabase Key:</strong> {import.meta.env.VITE_SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'}</p>
+                <p><strong>Environment:</strong> {import.meta.env.MODE}</p>
+              </div>
+              
+              {error && error.includes('Database configuration issue') && (
+                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <h5 className="text-sm font-medium text-yellow-800 mb-2">⚠️ Database Setup Issue Detected</h5>
+                  <p className="text-xs text-yellow-700 mb-2">
+                    Your Supabase database is not properly configured. This is preventing user signup.
+                  </p>
+                  <div className="text-xs text-yellow-700">
+                    <strong>Required Actions:</strong>
+                    <ol className="list-decimal list-inside mt-1 space-y-1">
+                      <li>Go to your Supabase Dashboard</li>
+                      <li>Open SQL Editor</li>
+                      <li>Run the setup-database.sql script</li>
+                      <li>Ensure all tables are created</li>
+                      <li>Verify RLS policies are enabled</li>
+                    </ol>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+                      if (supabaseUrl) {
+                        const projectId = supabaseUrl.split('//')[1].split('.')[0]
+                        window.open(`https://supabase.com/dashboard/project/${projectId}/sql`, '_blank')
+                      }
+                    }}
+                    className="mt-2 text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-1 rounded"
+                  >
+                    Open Supabase SQL Editor
+                  </button>
+                </div>
+              )}
+            </div>
           </form>
         </div>
       </div>

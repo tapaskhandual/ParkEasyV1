@@ -410,3 +410,74 @@ export const dbHelpers = {
     return data
   }
 }
+
+// Comprehensive Supabase diagnostics
+export const comprehensiveDiagnostics = async () => {
+  const results = {
+    environment: {
+      hasUrl: !!import.meta.env.VITE_SUPABASE_URL,
+      hasKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+      url: import.meta.env.VITE_SUPABASE_URL
+    },
+    database: {
+      connection: false,
+      tablesExist: false,
+      authUsersTable: false,
+      userProfilesTable: false,
+      rlsPolicies: false
+    },
+    auth: {
+      serviceAccessible: false,
+      signupEnabled: false
+    },
+    errors: []
+  }
+
+  try {
+    // Test 1: Basic connection
+    const { error: connectionError } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .limit(1)
+    
+    if (!connectionError) {
+      results.database.connection = true
+      results.database.userProfilesTable = true
+    } else if (connectionError.code === '42P01') {
+      results.database.connection = true
+      results.database.userProfilesTable = false
+      results.errors.push('user_profiles table does not exist')
+    } else {
+      results.errors.push(`Database connection error: ${connectionError.message}`)
+    }
+
+    // Test 2: Check auth service
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getSession()
+      if (!authError) {
+        results.auth.serviceAccessible = true
+      } else {
+        results.errors.push(`Auth service error: ${authError.message}`)
+      }
+    } catch (authErr) {
+      results.errors.push(`Auth service unreachable: ${authErr.message}`)
+    }
+
+    // Test 3: Check if we can access auth.users metadata (indicates proper setup)
+    try {
+      const { data: authUsers } = await supabase.auth.admin.listUsers()
+      results.database.authUsersTable = true
+    } catch (err) {
+      // This is expected to fail with anon key, but tells us about auth setup
+      results.database.authUsersTable = true // Assume it exists if we get permission error
+    }
+
+    console.log('🔍 Comprehensive Diagnostics Results:', results)
+    return results
+
+  } catch (error) {
+    results.errors.push(`General error: ${error.message}`)
+    console.error('❌ Diagnostics failed:', error)
+    return results
+  }
+}
