@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
-import { checkAuthIssues } from './lib/supabase'
+import { supabase } from './lib/supabase'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
@@ -33,38 +33,34 @@ function App() {
         return
       }
       
-      // Run comprehensive auth diagnostics
-      const authCheck = await checkAuthIssues()
-      
-      console.log('🔧 Auth diagnostics results:', authCheck)
-      
-      // Display results
-      authCheck.issues.forEach(issue => {
-        if (issue.startsWith('✅')) {
-          console.log(issue)
+      // Quick database check
+      try {
+        const { error: dbError } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .limit(1)
+        
+        if (dbError) {
+          if (dbError.code === '42P01') {
+            console.error('❌ CRITICAL: Database tables missing!')
+            alert(`❌ CRITICAL DATABASE ISSUE DETECTED!\n\n` +
+                  `The user_profiles table does not exist.\n\n` +
+                  `This is why signup fails with "Database error saving new user".\n\n` +
+                  `IMMEDIATE FIX REQUIRED:\n` +
+                  `1. Go to: https://supabase.com/dashboard/project/qbgjencsmwemxxqhsjlg/sql/new\n` +
+                  `2. Copy the COMPLETE database-fix.sql script\n` +
+                  `3. Paste and RUN it in SQL Editor\n` +
+                  `4. Wait for all queries to complete\n` +
+                  `5. Refresh this page\n\n` +
+                  `The script will create all required tables and fix auth issues.`)
+          } else {
+            console.error('❌ Database error:', dbError.message)
+          }
         } else {
-          console.error(issue)
+          console.log('✅ user_profiles table exists - database looks good!')
         }
-      })
-      
-      if (!authCheck.success || authCheck.issues.some(i => i.includes('does not exist'))) {
-        console.error('❌ CRITICAL: Database setup issues detected!')
-        
-        const missingTables = authCheck.issues.filter(i => i.includes('does not exist')).length
-        
-        alert(`❌ CRITICAL DATABASE ISSUE DETECTED!\n\n` +
-              `Missing ${missingTables} required database tables.\n\n` +
-              `This is why signup fails with "Database error saving new user".\n\n` +
-              `IMMEDIATE FIX REQUIRED:\n` +
-              `1. Go to: https://supabase.com/dashboard/project/qbgjencsmwemxxqhsjlg/sql/new\n` +
-              `2. Copy the COMPLETE setup-database.sql script\n` +
-              `3. Paste and RUN it in SQL Editor\n` +
-              `4. Wait for all queries to complete\n` +
-              `5. Refresh this page\n\n` +
-              `Recommendation: ${authCheck.recommendation}`)
-      } else {
-        console.log('✅ Basic database structure appears correct')
-        console.log('ℹ️ If signup still fails, there may be trigger/constraint issues')
+      } catch (checkError) {
+        console.error('❌ Database check failed:', checkError.message)
       }
     }
     
