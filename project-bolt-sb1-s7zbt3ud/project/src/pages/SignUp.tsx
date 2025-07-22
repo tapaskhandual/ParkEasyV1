@@ -6,6 +6,7 @@ import { Car, User, Phone, MapPin, CreditCard } from 'lucide-react'
 const SignUp: React.FC = () => {
   const { signUp, loading } = useAuth()
   const navigate = useNavigate()
+  const [localLoading, setLocalLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -72,7 +73,18 @@ const SignUp: React.FC = () => {
       return
     }
 
+    let timeoutId: NodeJS.Timeout | null = null
+    
     try {
+      setLocalLoading(true)
+      console.log('🔄 SignUp: Starting signup process...')
+      
+      // Add a timeout to prevent infinite loading
+      timeoutId = setTimeout(() => {
+        setLocalLoading(false)
+        setError('Request timed out. Please try again.')
+      }, 30000) // 30 second timeout
+      
       const result = await signUp(formData.email, formData.password, {
         user_type: formData.user_type,
         full_name: formData.full_name.trim(),
@@ -86,6 +98,9 @@ const SignUp: React.FC = () => {
         bank_ifsc_code: formData.user_type === 'owner' ? formData.bank_ifsc_code.trim() || null : null,
         bank_account_holder_name: formData.user_type === 'owner' ? formData.bank_account_holder_name.trim() || null : null,
       })
+      
+      if (timeoutId) clearTimeout(timeoutId) // Clear the timeout if signup completes
+      console.log('✅ SignUp: Signup completed successfully')
       
       // Handle different signup outcomes
       if (result && result.needsEmailConfirmation) {
@@ -138,6 +153,10 @@ const SignUp: React.FC = () => {
       }
       
       setError(errorMessage)
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId) // Ensure timeout is cleared
+      setLocalLoading(false)
+      console.log('🏁 SignUp: Process completed, local loading reset')
     }
   }
 
@@ -382,10 +401,10 @@ const SignUp: React.FC = () => {
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || localLoading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Creating Account...' : 'Create Account'}
+                {(loading || localLoading) ? 'Creating Account...' : 'Create Account'}
               </button>
             </div>
 

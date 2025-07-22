@@ -94,8 +94,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, userData: any) => {
     setLoading(true)
+    console.log('🚀 Starting signup process...', { email, userType: userData.user_type })
+    
     try {
       // Use basic signup without metadata and disable email confirmation for development
+      console.log('📧 Attempting Supabase auth signup...')
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -103,6 +106,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           emailRedirectTo: undefined // Disable email confirmation
         }
       })
+      
+      console.log('📧 Supabase auth response:', { data: !!data, error: !!error, errorMessage: error?.message })
 
       if (error) {
         // Handle specific Supabase auth errors
@@ -169,9 +174,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return data
       
     } catch (error) {
-      console.error('Error signing up:', error)
+      console.error('❌ Error signing up:', error)
       throw error
     } finally {
+      console.log('🏁 Signup process completed, resetting loading state')
       setLoading(false)
     }
   }
