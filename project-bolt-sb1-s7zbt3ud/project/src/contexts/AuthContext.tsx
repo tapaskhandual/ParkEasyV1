@@ -30,6 +30,7 @@ interface AuthContextType {
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<User>) => Promise<void>
   clearSession: () => Promise<void>
+  forceResetLoading: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -284,6 +285,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearSession = async () => {
     console.log('🧹 Force clearing all session data...')
     
+    // Immediately reset loading state
+    setLoading(false)
+    
     try {
       // Sign out from Supabase
       await supabase.auth.signOut()
@@ -304,6 +308,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Reload page to ensure clean state
     window.location.reload()
+  }
+
+  // Force reset loading state without clearing session
+  const forceResetLoading = () => {
+    console.log('🔄 Force resetting loading state...')
+    setLoading(false)
   }
 
   const updateProfile = async (updates: Partial<User>) => {
@@ -327,6 +337,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     updateProfile,
     clearSession,
+    forceResetLoading,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

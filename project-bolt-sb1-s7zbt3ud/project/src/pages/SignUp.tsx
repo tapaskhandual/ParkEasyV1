@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import { Car, User, Phone, MapPin, CreditCard } from 'lucide-react'
 
 const SignUp: React.FC = () => {
-  const { signUp, loading, clearSession } = useAuth()
+  const { signUp, loading, clearSession, forceResetLoading } = useAuth()
   const navigate = useNavigate()
   const [localLoading, setLocalLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -26,6 +26,15 @@ const SignUp: React.FC = () => {
   })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  // Force reset function to clear stuck states
+  const forceReset = () => {
+    console.log('🔄 Force resetting all states...')
+    setLocalLoading(false)
+    setError('')
+    setSuccess('')
+    forceResetLoading() // Also reset AuthContext loading
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
@@ -52,9 +61,8 @@ const SignUp: React.FC = () => {
         
         // Always clear any existing session before signup
         setSuccess('Existing session detected. Clearing it for clean signup...')
-        setLocalLoading(true)
         
-        // Immediate session cleanup
+        // Immediate session cleanup WITHOUT setting loading state
         try {
           await supabase.auth.signOut()
           localStorage.clear()
@@ -64,11 +72,9 @@ const SignUp: React.FC = () => {
           console.warn('Error clearing session:', clearError)
         }
         
-        // Wait for cleanup and reload
-        setTimeout(() => {
-          console.log('🔄 Reloading page for clean state...')
-          window.location.reload()
-        }, 1500)
+        // Immediate reload without delay
+        console.log('🔄 Reloading page for clean state...')
+        window.location.reload()
         return
       }
     } catch (checkError) {
@@ -200,14 +206,22 @@ const SignUp: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Emergency Session Clear - Always visible */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-50 space-y-2">
         <button
           type="button"
           onClick={clearSession}
-          className="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded shadow-lg"
+          className="block text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded shadow-lg"
           title="Clear any stuck sessions"
         >
           🚨 Emergency Clear
+        </button>
+        <button
+          type="button"
+          onClick={forceReset}
+          className="block text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded shadow-lg"
+          title="Reset loading states"
+        >
+          🔄 Reset States
         </button>
       </div>
 
