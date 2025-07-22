@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { Car } from 'lucide-react'
 
 const SignIn: React.FC = () => {
-  const { signIn, loading } = useAuth()
+  const { signIn, loading, clearSession } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [localLoading, setLocalLoading] = useState(false)
@@ -232,6 +232,17 @@ const SignIn: React.FC = () => {
               <p><strong>Supabase Key:</strong> {import.meta.env.VITE_SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'}</p>
               <p><strong>Environment:</strong> {import.meta.env.MODE}</p>
               <p><strong>Loading State:</strong> {(loading || localLoading) ? '🔄 Active' : '✅ Ready'}</p>
+            </div>
+            
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-xs text-gray-600 mb-2">If you manually deleted a user while logged in:</p>
+              <button
+                type="button"
+                onClick={clearSession}
+                className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded"
+              >
+                🧹 Clear Session & Reload
+              </button>
             </div>
           </div>
         </div>

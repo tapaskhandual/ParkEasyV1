@@ -29,6 +29,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<User>) => Promise<void>
+  clearSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -221,6 +222,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  // Force clear session - useful when user was deleted manually
+  const clearSession = async () => {
+    console.log('🧹 Force clearing all session data...')
+    
+    try {
+      // Sign out from Supabase
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.warn('Supabase signout failed (expected if user was deleted):', error)
+    }
+    
+    // Clear all local storage
+    localStorage.clear()
+    sessionStorage.clear()
+    
+    // Reset state
+    setUser(null)
+    setUserProfile(null)
+    setLoading(false)
+    
+    console.log('✅ Session cleared successfully')
+    
+    // Reload page to ensure clean state
+    window.location.reload()
+  }
+
   const updateProfile = async (updates: Partial<User>) => {
     if (!user) throw new Error('No user logged in')
     
@@ -241,6 +268,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     updateProfile,
+    clearSession,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
