@@ -39,23 +39,40 @@ const SignUp: React.FC = () => {
     setError('')
     setSuccess('')
 
-    // Check if there's a session conflict first
-    const currentUser = supabase.auth.getUser()
-    if (currentUser) {
-      console.log('🔍 Checking for session conflicts...')
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user?.email === formData.email) {
-          console.log('⚠️ Session conflict detected - same email')
-          setSuccess('Session conflict detected. Clearing previous session and reloading...')
-          setTimeout(async () => {
-            await clearSession()
-          }, 1000)
-          return
+    // Check if there's ANY active session first
+    console.log('🔍 Checking for existing sessions...')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        console.log('⚠️ Active session detected:', { 
+          sessionEmail: session.user.email, 
+          attemptingEmail: formData.email,
+          userId: session.user.id 
+        })
+        
+        // Always clear any existing session before signup
+        setSuccess('Existing session detected. Clearing it for clean signup...')
+        setLocalLoading(true)
+        
+        // Immediate session cleanup
+        try {
+          await supabase.auth.signOut()
+          localStorage.clear()
+          sessionStorage.clear()
+          console.log('✅ Session cleared successfully')
+        } catch (clearError) {
+          console.warn('Error clearing session:', clearError)
         }
-      } catch (checkError) {
-        console.log('Session check failed, continuing with signup')
+        
+        // Wait for cleanup and reload
+        setTimeout(() => {
+          console.log('🔄 Reloading page for clean state...')
+          window.location.reload()
+        }, 1500)
+        return
       }
+    } catch (checkError) {
+      console.log('Session check failed, continuing with signup:', checkError)
     }
 
     // Validation
