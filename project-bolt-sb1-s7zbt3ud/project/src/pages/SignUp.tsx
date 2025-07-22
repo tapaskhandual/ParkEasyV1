@@ -186,213 +186,257 @@ const SignUp: React.FC = () => {
               </div>
             )}
 
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
+                {success}
+              </div>
+            )}
+
             {/* User Type Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 I want to
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, user_type: 'customer' })}
-                  className={`p-3 border rounded-lg text-sm font-medium transition-colors ${
-                    formData.user_type === 'customer'
-                      ? 'border-blue-600 bg-blue-50 text-blue-600'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <User className="h-4 w-4 mx-auto mb-1" />
-                  Find Parking
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, user_type: 'owner' })}
-                  className={`p-3 border rounded-lg text-sm font-medium transition-colors ${
-                    formData.user_type === 'owner'
-                      ? 'border-blue-600 bg-blue-50 text-blue-600'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <Car className="h-4 w-4 mx-auto mb-1" />
-                  List My Space
-                </button>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="user_type"
+                    value="customer"
+                    checked={formData.user_type === 'customer'}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Find parking spaces</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="user_type"
+                    value="owner"
+                    checked={formData.user_type === 'owner'}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">List my parking space</span>
+                </label>
               </div>
             </div>
 
             {/* Basic Information */}
-            <div>
-              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
-                Full Name *
-              </label>
-              <input
-                id="full_name"
-                name="full_name"
-                type="text"
-                required
-                value={formData.full_name}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                <User className="h-4 w-4" />
+                <span>Basic Information</span>
+              </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email Address *
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+              <div>
+                <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
+                  Full Name *
+                </label>
+                <input
+                  id="full_name"
+                  name="full_name"
+                  type="text"
+                  required
+                  value={formData.full_name}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
 
-            <div>
-              <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
-                Phone Number *
-              </label>
-              <input
-                id="phone_number"
-                name="phone_number"
-                type="tel"
-                required
-                value={formData.phone_number}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Email Address *
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password *
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+              <div>
+                <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
+                  Phone Number *
+                </label>
+                <input
+                  id="phone_number"
+                  name="phone_number"
+                  type="tel"
+                  required
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                Confirm Password *
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password *
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                  Confirm Password *
+                </label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
             </div>
 
             {/* Address Information */}
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-700 flex items-center">
-                <MapPin className="h-4 w-4 mr-1" />
-                Address Information (Optional)
-              </h3>
-              
+              <div className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                <MapPin className="h-4 w-4" />
+                <span>Address (Optional)</span>
+              </div>
+
               <div>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                  Street Address
+                </label>
                 <input
+                  id="address"
                   name="address"
                   type="text"
-                  placeholder="Street Address"
                   value={formData.address}
                   onChange={handleChange}
-                  className="block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  name="city"
-                  type="text"
-                  placeholder="City"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className="block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
-                <input
-                  name="state"
-                  type="text"
-                  placeholder="State"
-                  value={formData.state}
-                  onChange={handleChange}
-                  className="block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+                    City
+                  </label>
+                  <input
+                    id="city"
+                    name="city"
+                    type="text"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="state" className="block text-sm font-medium text-gray-700">
+                    State
+                  </label>
+                  <input
+                    id="state"
+                    name="state"
+                    type="text"
+                    value={formData.state}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
               </div>
 
               <div>
+                <label htmlFor="pincode" className="block text-sm font-medium text-gray-700">
+                  Pincode
+                </label>
                 <input
+                  id="pincode"
                   name="pincode"
                   type="text"
-                  placeholder="PIN Code"
                   value={formData.pincode}
                   onChange={handleChange}
-                  className="block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
 
-            {/* Payment Information for Owners */}
+            {/* Banking Information for Owners */}
             {formData.user_type === 'owner' && (
               <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-700 flex items-center">
-                  <CreditCard className="h-4 w-4 mr-1" />
-                  Payment Information (Optional)
-                </h3>
-                
+                <div className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                  <CreditCard className="h-4 w-4" />
+                  <span>Payment Information (Optional)</span>
+                </div>
+
                 <div>
+                  <label htmlFor="upi_id" className="block text-sm font-medium text-gray-700">
+                    UPI ID
+                  </label>
                   <input
+                    id="upi_id"
                     name="upi_id"
                     type="text"
-                    placeholder="UPI ID (e.g., yourname@paytm)"
+                    placeholder="your-upi@bank"
                     value={formData.upi_id}
                     onChange={handleChange}
-                    className="block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
+                  <label htmlFor="bank_account_number" className="block text-sm font-medium text-gray-700">
+                    Bank Account Number
+                  </label>
                   <input
-                    name="bank_account_holder_name"
-                    type="text"
-                    placeholder="Account Holder Name"
-                    value={formData.bank_account_holder_name}
-                    onChange={handleChange}
-                    className="block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <input
+                    id="bank_account_number"
                     name="bank_account_number"
                     type="text"
-                    placeholder="Bank Account Number"
                     value={formData.bank_account_number}
                     onChange={handleChange}
-                    className="block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
+                  <label htmlFor="bank_ifsc_code" className="block text-sm font-medium text-gray-700">
+                    IFSC Code
+                  </label>
                   <input
+                    id="bank_ifsc_code"
                     name="bank_ifsc_code"
                     type="text"
-                    placeholder="IFSC Code"
                     value={formData.bank_ifsc_code}
                     onChange={handleChange}
-                    className="block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="bank_account_holder_name" className="block text-sm font-medium text-gray-700">
+                    Account Holder Name
+                  </label>
+                  <input
+                    id="bank_account_holder_name"
+                    name="bank_account_holder_name"
+                    type="text"
+                    value={formData.bank_account_holder_name}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -409,45 +453,47 @@ const SignUp: React.FC = () => {
             </div>
 
             {/* Debug Information */}
+            {error && error.includes('Database configuration issue') && (
+              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <h5 className="text-sm font-medium text-yellow-800 mb-2">⚠️ Database Setup Issue Detected</h5>
+                <p className="text-xs text-yellow-700 mb-2">
+                  Your Supabase database is not properly configured. This is preventing user signup.
+                </p>
+                <div className="text-xs text-yellow-700">
+                  <strong>Required Actions:</strong>
+                  <ol className="list-decimal list-inside mt-1 space-y-1">
+                    <li>Go to your Supabase Dashboard</li>
+                    <li>Open SQL Editor</li>
+                    <li>Run the setup-database.sql script</li>
+                    <li>Ensure all tables are created</li>
+                    <li>Verify RLS policies are enabled</li>
+                  </ol>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+                    if (supabaseUrl) {
+                      const projectId = supabaseUrl.split('//')[1].split('.')[0]
+                      window.open(`https://supabase.com/dashboard/project/${projectId}/sql`, '_blank')
+                    }
+                  }}
+                  className="mt-2 text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-1 rounded"
+                >
+                  Open Supabase SQL Editor
+                </button>
+              </div>
+            )}
+
+            {/* Debug Information */}
             <div className="mt-6 p-4 bg-gray-50 rounded-md">
               <h4 className="text-sm font-medium text-gray-900 mb-2">🔧 Debug Information</h4>
               <div className="text-xs text-gray-600 space-y-1">
                 <p><strong>Supabase URL:</strong> {import.meta.env.VITE_SUPABASE_URL ? '✅ Set' : '❌ Missing'}</p>
                 <p><strong>Supabase Key:</strong> {import.meta.env.VITE_SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'}</p>
                 <p><strong>Environment:</strong> {import.meta.env.MODE}</p>
+                <p><strong>Loading State:</strong> {loading || localLoading ? '🔄 Active' : '✅ Ready'}</p>
               </div>
-              
-              {error && error.includes('Database configuration issue') && (
-                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <h5 className="text-sm font-medium text-yellow-800 mb-2">⚠️ Database Setup Issue Detected</h5>
-                  <p className="text-xs text-yellow-700 mb-2">
-                    Your Supabase database is not properly configured. This is preventing user signup.
-                  </p>
-                  <div className="text-xs text-yellow-700">
-                    <strong>Required Actions:</strong>
-                    <ol className="list-decimal list-inside mt-1 space-y-1">
-                      <li>Go to your Supabase Dashboard</li>
-                      <li>Open SQL Editor</li>
-                      <li>Run the setup-database.sql script</li>
-                      <li>Ensure all tables are created</li>
-                      <li>Verify RLS policies are enabled</li>
-                    </ol>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-                      if (supabaseUrl) {
-                        const projectId = supabaseUrl.split('//')[1].split('.')[0]
-                        window.open(`https://supabase.com/dashboard/project/${projectId}/sql`, '_blank')
-                      }
-                    }}
-                    className="mt-2 text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-1 rounded"
-                  >
-                    Open Supabase SQL Editor
-                  </button>
-                </div>
-              )}
             </div>
           </form>
         </div>

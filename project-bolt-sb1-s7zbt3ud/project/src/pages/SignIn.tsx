@@ -7,11 +7,13 @@ const SignIn: React.FC = () => {
   const { signIn, loading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [localLoading, setLocalLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   })
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const from = location.state?.from?.pathname || '/dashboard'
 
@@ -25,15 +27,42 @@ const SignIn: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
 
     if (!formData.email || !formData.password) {
       setError('Please fill in all fields')
       return
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    let timeoutId: NodeJS.Timeout | null = null
+
     try {
+      setLocalLoading(true)
+      console.log('🔄 SignIn: Starting signin process...', { email: formData.email })
+
+      // Add a timeout to prevent infinite loading
+      timeoutId = setTimeout(() => {
+        setLocalLoading(false)
+        setError('Request timed out. Please try again.')
+      }, 30000) // 30 second timeout
+
       await signIn(formData.email, formData.password)
-      navigate(from, { replace: true })
+      
+      if (timeoutId) clearTimeout(timeoutId)
+      console.log('✅ SignIn: Signin completed successfully')
+      
+      setSuccess('Sign in successful! Redirecting...')
+      setTimeout(() => {
+        navigate(from, { replace: true })
+      }, 1000)
+
     } catch (error: any) {
       console.error('Sign in error:', error)
       
@@ -41,18 +70,30 @@ const SignIn: React.FC = () => {
       let errorMessage = 'Failed to sign in'
       
       if (error.message) {
-        if (error.message.includes('Invalid login credentials')) {
+        if (error.message.includes('Invalid login credentials') || error.message.includes('invalid_credentials')) {
           errorMessage = 'Invalid email or password. Please check your credentials and try again.'
         } else if (error.message.includes('Email not confirmed')) {
           errorMessage = 'Please check your email and confirm your account before signing in.'
-        } else if (error.message.includes('Too many requests')) {
+        } else if (error.message.includes('Too many requests') || error.message.includes('rate_limit')) {
           errorMessage = 'Too many login attempts. Please wait a few minutes and try again.'
+        } else if (error.message.includes('User not found')) {
+          errorMessage = 'No account found with this email address. Please sign up first.'
+        } else if (error.message.includes('Password')) {
+          errorMessage = 'Incorrect password. Please try again.'
+        } else if (error.message.includes('Network')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else if (error.message.includes('Database')) {
+          errorMessage = 'Server issue. Please try again in a moment.'
         } else {
           errorMessage = error.message
         }
       }
       
       setError(errorMessage)
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId)
+      setLocalLoading(false)
+      console.log('🏁 SignIn: Process completed, local loading reset')
     }
   }
 
@@ -82,6 +123,12 @@ const SignIn: React.FC = () => {
               </div>
             )}
 
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-md text-sm">
+                {success}
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email Address
@@ -95,6 +142,7 @@ const SignIn: React.FC = () => {
                 value={formData.email}
                 onChange={handleChange}
                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your email"
               />
             </div>
 
@@ -111,6 +159,7 @@ const SignIn: React.FC = () => {
                 value={formData.password}
                 onChange={handleChange}
                 className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter your password"
               />
             </div>
 
@@ -137,10 +186,10 @@ const SignIn: React.FC = () => {
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || localLoading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Signing in...' : 'Sign in'}
+                {(loading || localLoading) ? 'Signing in...' : 'Sign in'}
               </button>
             </div>
           </form>
@@ -159,17 +208,30 @@ const SignIn: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setFormData({ email: 'customer@demo.com', password: 'demo123' })}
-                className="w-full text-left px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
+                disabled={loading || localLoading}
+                className="w-full text-left px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Customer Demo: customer@demo.com
               </button>
               <button
                 type="button"
                 onClick={() => setFormData({ email: 'owner@demo.com', password: 'demo123' })}
-                className="w-full text-left px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
+                disabled={loading || localLoading}
+                className="w-full text-left px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Owner Demo: owner@demo.com
               </button>
+            </div>
+          </div>
+
+          {/* Debug Information */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-md">
+            <h4 className="text-sm font-medium text-gray-900 mb-2">🔧 Debug Information</h4>
+            <div className="text-xs text-gray-600 space-y-1">
+              <p><strong>Supabase URL:</strong> {import.meta.env.VITE_SUPABASE_URL ? '✅ Set' : '❌ Missing'}</p>
+              <p><strong>Supabase Key:</strong> {import.meta.env.VITE_SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'}</p>
+              <p><strong>Environment:</strong> {import.meta.env.MODE}</p>
+              <p><strong>Loading State:</strong> {(loading || localLoading) ? '🔄 Active' : '✅ Ready'}</p>
             </div>
           </div>
         </div>
