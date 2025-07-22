@@ -21,8 +21,7 @@ export const testDatabaseConnection = async () => {
     // Test 1: Check if user_profiles table exists
     const { data: tableCheck, error: tableError } = await supabase
       .from('user_profiles')
-      .select('count(*)')
-      .limit(1)
+      .select('id', { count: 'exact', head: true })
     
     if (tableError) {
       console.error('Database table check failed:', tableError)
@@ -36,18 +35,10 @@ export const testDatabaseConnection = async () => {
     const { data: authUser } = await supabase.auth.getUser()
     console.log('Auth service accessible:', !!authUser)
     
-    // Test 3: Check RLS policies
-    const { data: rlsCheck, error: rlsError } = await supabase
-      .rpc('has_table_privilege', { 
-        table_name: 'user_profiles', 
-        privilege: 'INSERT' 
-      })
-      .single()
-    
     console.log('Database connection successful', {
       tablesExist: true,
       authAccessible: !!authUser,
-      insertPrivileges: !rlsError
+      tableAccessible: !tableError
     })
     
     return true
@@ -64,7 +55,7 @@ export const diagnoseAuthIssues = async () => {
     const { data, error } = await supabase.auth.getSession()
     console.log('Auth session check:', { hasSession: !!data.session, error })
     
-    // Test basic database connectivity
+    // Test basic database connectivity with a simple select
     const { data: basicTest, error: basicError } = await supabase
       .from('user_profiles')
       .select('id')
@@ -77,7 +68,9 @@ export const diagnoseAuthIssues = async () => {
       databaseAccessible: !basicError,
       recommendation: basicError?.code === '42P01' 
         ? 'Run setup-database.sql in Supabase SQL editor'
-        : 'Check Supabase project status and credentials'
+        : basicError 
+        ? 'Check Supabase project status and database setup'
+        : 'Database and auth are working correctly'
     }
   } catch (error) {
     console.error('Auth diagnosis failed:', error)
@@ -85,6 +78,44 @@ export const diagnoseAuthIssues = async () => {
       authAccessible: false,
       databaseAccessible: false,
       recommendation: 'Check Supabase project status and credentials'
+    }
+  }
+}
+
+// Simple database test
+export const simpleDbTest = async () => {
+  try {
+    // Simple test - just try to select from user_profiles table
+    const { error } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .limit(1)
+    
+    if (error) {
+      if (error.code === '42P01') {
+        return {
+          success: false,
+          message: 'Database tables not found. Please run setup-database.sql in your Supabase SQL editor.',
+          code: 'TABLES_MISSING'
+        }
+      }
+      return {
+        success: false,
+        message: `Database error: ${error.message}`,
+        code: 'DB_ERROR'
+      }
+    }
+    
+    return {
+      success: true,
+      message: 'Database connection successful',
+      code: 'SUCCESS'
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: `Connection error: ${error.message}`,
+      code: 'CONNECTION_ERROR'
     }
   }
 }

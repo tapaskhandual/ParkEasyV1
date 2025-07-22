@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
-import { testDatabaseConnection, diagnoseAuthIssues } from './lib/supabase'
+import { simpleDbTest } from './lib/supabase'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
@@ -12,35 +12,25 @@ import MapView from './pages/MapView'
 import PaymentSuccess from './pages/PaymentSuccess'
 
 function App() {
-  // Test database connection and diagnose auth issues on app startup
+  // Test database connection on app startup
   React.useEffect(() => {
     const runDiagnostics = async () => {
-      try {
-        console.log('🔍 Running Supabase diagnostics...')
+      console.log('🔍 Testing Supabase database connection...')
+      
+      const dbTest = await simpleDbTest()
+      
+      if (dbTest.success) {
+        console.log('✅ Database connection successful')
+      } else {
+        console.error('❌ Database issue detected:', dbTest.message)
         
-        // Test basic connectivity
-        await testDatabaseConnection()
-        console.log('✅ Database connectivity check passed')
-        
-        // Diagnose auth configuration
-        const authDiag = await diagnoseAuthIssues()
-        console.log('🔧 Auth diagnosis:', authDiag)
-        
-        if (!authDiag.databaseAccessible) {
-          console.error('❌ Database setup issue detected')
-          alert(`Database Setup Required!\n\n${authDiag.recommendation}\n\nCheck the console for details.`)
-        }
-        
-      } catch (error) {
-        console.error('❌ Supabase setup issue:', error.message)
-        
-        // Provide specific guidance based on error
-        if (error.message.includes('setup-database.sql')) {
-          alert('Database Setup Required!\n\n1. Go to your Supabase dashboard\n2. Open SQL Editor\n3. Run the setup-database.sql script\n4. Refresh this page')
-        } else if (error.message.includes('VITE_SUPABASE')) {
-          alert('Environment Variables Missing!\n\nCheck that your .env file contains:\n- VITE_SUPABASE_URL\n- VITE_SUPABASE_ANON_KEY')
+        // Provide specific guidance based on error code
+        if (dbTest.code === 'TABLES_MISSING') {
+          alert('Database Setup Required!\n\n1. Go to your Supabase dashboard\n2. Open SQL Editor\n3. Copy and paste the setup-database.sql script\n4. Run the script\n5. Refresh this page\n\nThe database tables are missing.')
+        } else if (dbTest.code === 'DB_ERROR') {
+          alert('Database Error!\n\nThere\'s an issue with your database configuration.\n\nCheck the console for details and verify your Supabase project status.')
         } else {
-          alert('Supabase Connection Issue!\n\nCheck your Supabase project status and credentials.\n\nSee console for details.')
+          alert('Connection Error!\n\nCannot connect to Supabase.\n\nCheck your environment variables and Supabase project status.')
         }
       }
     }

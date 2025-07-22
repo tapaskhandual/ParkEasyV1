@@ -95,16 +95,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, userData: any) => {
     setLoading(true)
     try {
-      // First, try to sign up the user with basic auth
+      // Use basic signup without metadata to avoid auth server issues
       const { data, error } = await supabase.auth.signUp({
         email,
-        password,
-        options: {
-          data: {
-            full_name: userData.full_name,
-            user_type: userData.user_type
-          }
-        }
+        password
       })
 
       if (error) {
@@ -112,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Supabase Auth Error:', error)
         
         if (error.message.includes('Database error saving new user')) {
-          throw new Error('Database configuration issue. Please contact support or check if the database tables are properly set up.')
+          throw new Error('Database configuration issue. Please ensure the database is properly set up and try again.')
         } else if (error.message.includes('User already registered')) {
           throw new Error('An account with this email already exists. Please sign in instead.')
         } else if (error.message.includes('Signup is disabled')) {
@@ -124,20 +118,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      // If signup successful but waiting for email confirmation
-      if (data.user && !data.user.email_confirmed_at) {
-        console.log('User created, waiting for email confirmation')
-        // Don't create profile yet - will be created after email confirmation
-        return {
-          user: data.user,
-          needsEmailConfirmation: true
+      // Check if user was created successfully
+      if (data.user) {
+        console.log('User created in auth system:', data.user.id)
+        
+        // For email confirmation flow, don't create profile immediately
+        if (!data.user.email_confirmed_at) {
+          console.log('Email confirmation required')
+          return {
+            user: data.user,
+            needsEmailConfirmation: true
+          }
         }
-      }
 
-      // If user is immediately confirmed, create profile
-      if (data.user && data.user.email_confirmed_at) {
+        // If user is immediately confirmed, try to create profile
         try {
-          // Clean and validate userData before database insertion
           const cleanUserData = {
             user_type: userData.user_type || 'customer',
             full_name: userData.full_name?.trim() || '',
@@ -153,18 +148,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             is_verified: false
           }
 
-          // Validate required fields
           if (!cleanUserData.full_name) {
             throw new Error('Full name is required')
           }
 
-          // Create user profile
           await dbHelpers.createUserProfile(data.user.id, cleanUserData)
           console.log('User profile created successfully')
           
         } catch (profileError) {
-          console.warn('Failed to create user profile immediately, will retry on sign in:', profileError)
-          // Don't throw error here - user auth was successful, profile can be created later
+          console.warn('Profile creation failed, but auth user exists. Profile can be created on next sign in:', profileError)
+          // Don't throw - auth was successful, profile creation can be retried
         }
       }
 
