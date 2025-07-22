@@ -48,8 +48,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let mounted = true
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return
+      
       setSupabaseUser(session?.user ?? null)
       if (session?.user) {
         loadUserProfile(session.user.id)
@@ -62,6 +66,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return
+      
+      console.log('🔄 Auth state changed:', { event, hasSession: !!session })
       setSupabaseUser(session?.user ?? null)
       
       if (session?.user) {
@@ -72,21 +79,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const loadUserProfile = async (userId: string) => {
     try {
+      console.log('🔍 Loading user profile for:', userId)
       const profile = await dbHelpers.getUserProfile(userId)
       if (profile) {
+        console.log('✅ User profile loaded successfully')
         setUser(profile)
       } else {
-        // Profile doesn't exist - user might have been created in auth but profile creation failed
-        console.warn('User profile not found for authenticated user:', userId)
+        // Profile doesn't exist - user might have been deleted manually
+        console.warn('❌ User profile not found for authenticated user:', userId)
+        console.log('🧹 Clearing orphaned session...')
+        
+        // Clear the orphaned session automatically
+        try {
+          await supabase.auth.signOut()
+          localStorage.clear()
+          sessionStorage.clear()
+        } catch (clearError) {
+          console.warn('Error clearing session:', clearError)
+        }
+        
         setUser(null)
+        setSupabaseUser(null)
       }
     } catch (error) {
-      console.error('Error loading user profile:', error)
+      console.error('❌ Error loading user profile:', error)
+      
+      // If it's a database error, might be an orphaned session
+      if (error.message && error.message.includes('not found')) {
+        console.log('🧹 Clearing potentially orphaned session due to error...')
+        try {
+          await supabase.auth.signOut()
+          localStorage.clear()
+          sessionStorage.clear()
+        } catch (clearError) {
+          console.warn('Error clearing session:', clearError)
+        }
+        setSupabaseUser(null)
+      }
+      
       setUser(null)
     } finally {
       setLoading(false)
@@ -98,6 +136,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('🚀 Starting signup process...', { email, userType: userData.user_type })
     
     try {
+      // First check if there's an orphaned session for this email
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user?.email === email) {
+        console.log('🧹 Found existing session for same email, clearing it first...')
+        
+        // Clear session manually without page reload
+        try {
+          await supabase.auth.signOut()
+          localStorage.clear()
+          sessionStorage.clear()
+          setUser(null)
+          setSupabaseUser(null)
+        } catch (clearError) {
+          console.warn('Error clearing session:', clearError)
+        }
+        
+        // Wait a moment for cleanup
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+      
       // Use basic signup without metadata and disable email confirmation for development
       console.log('📧 Attempting Supabase auth signup...')
       const { data, error } = await supabase.auth.signUp({

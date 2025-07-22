@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 import { Car, User, Phone, MapPin, CreditCard } from 'lucide-react'
 
 const SignUp: React.FC = () => {
@@ -37,6 +38,25 @@ const SignUp: React.FC = () => {
     e.preventDefault()
     setError('')
     setSuccess('')
+
+    // Check if there's a session conflict first
+    const currentUser = supabase.auth.getUser()
+    if (currentUser) {
+      console.log('🔍 Checking for session conflicts...')
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user?.email === formData.email) {
+          console.log('⚠️ Session conflict detected - same email')
+          setSuccess('Session conflict detected. Clearing previous session and reloading...')
+          setTimeout(async () => {
+            await clearSession()
+          }, 1000)
+          return
+        }
+      } catch (checkError) {
+        console.log('Session check failed, continuing with signup')
+      }
+    }
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
@@ -496,14 +516,22 @@ const SignUp: React.FC = () => {
               </div>
               
               <div className="mt-3 pt-3 border-t border-gray-200">
-                <p className="text-xs text-gray-600 mb-2">If you manually deleted a user while logged in:</p>
-                <button
-                  type="button"
-                  onClick={clearSession}
-                  className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded"
-                >
-                  🧹 Clear Session & Reload
-                </button>
+                <p className="text-xs text-gray-600 mb-2">Issues with signup?</p>
+                <div className="space-y-2">
+                  <div className="text-xs text-yellow-700 bg-yellow-50 p-2 rounded">
+                    <strong>If you manually deleted a user:</strong><br/>
+                    • Clear session before trying to signup again<br/>
+                    • Use a different email address<br/>
+                    • Or click the button below
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearSession}
+                    className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded"
+                  >
+                    🧹 Clear Session & Reload
+                  </button>
+                </div>
               </div>
             </div>
           </form>
