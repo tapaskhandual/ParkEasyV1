@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 import { Car } from 'lucide-react'
 
 const SignIn: React.FC = () => {
@@ -39,6 +40,42 @@ const SignIn: React.FC = () => {
     if (!emailRegex.test(formData.email)) {
       setError('Please enter a valid email address')
       return
+    }
+
+    // Check if there's ANY active session first and clear it
+    console.log('🔍 Checking for existing sessions before signin...')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        console.log('⚠️ Active session detected before signin:', { 
+          sessionEmail: session.user.email, 
+          attemptingEmail: formData.email,
+          userId: session.user.id 
+        })
+        
+        // Always clear any existing session before signin
+        setSuccess('Existing session detected. Clearing it for clean signin...')
+        setLocalLoading(true)
+        
+        // Immediate session cleanup
+        try {
+          await supabase.auth.signOut()
+          localStorage.clear()
+          sessionStorage.clear()
+          console.log('✅ Session cleared successfully')
+        } catch (clearError) {
+          console.warn('Error clearing session:', clearError)
+        }
+        
+        // Wait for cleanup and reload
+        setTimeout(() => {
+          console.log('🔄 Reloading page for clean state...')
+          window.location.reload()
+        }, 1500)
+        return
+      }
+    } catch (checkError) {
+      console.log('Session check failed, continuing with signin:', checkError)
     }
 
     let timeoutId: NodeJS.Timeout | null = null
@@ -99,6 +136,18 @@ const SignIn: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      {/* Emergency Session Clear - Always visible */}
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          type="button"
+          onClick={clearSession}
+          className="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded shadow-lg"
+          title="Clear any stuck sessions"
+        >
+          🚨 Emergency Clear
+        </button>
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <Car className="h-12 w-12 text-blue-600" />

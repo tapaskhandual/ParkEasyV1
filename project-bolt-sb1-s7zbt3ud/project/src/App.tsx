@@ -32,6 +32,35 @@ function App() {
         alert('Environment Variables Missing!\n\nMake sure your .env file contains:\n- VITE_SUPABASE_URL\n- VITE_SUPABASE_ANON_KEY\n\nCheck your Supabase project dashboard for these values.')
         return
       }
+
+      // Check for orphaned sessions on app startup
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          console.log('🔍 Found existing session on startup:', session.user.id)
+          
+          // Test if user profile exists
+          try {
+            const { error: profileError } = await supabase
+              .from('user_profiles')
+              .select('id')
+              .eq('id', session.user.id)
+              .single()
+            
+            if (profileError && profileError.code === 'PGRST116') {
+              console.log('⚠️ Orphaned session detected - user profile missing. Clearing...')
+              await supabase.auth.signOut()
+              localStorage.clear()
+              sessionStorage.clear()
+              console.log('✅ Orphaned session cleared on startup')
+            }
+          } catch (profileCheckError) {
+            console.warn('Profile check failed:', profileCheckError)
+          }
+        }
+      } catch (sessionError) {
+        console.warn('Session check failed:', sessionError)
+      }
       
       // Quick database check
       try {

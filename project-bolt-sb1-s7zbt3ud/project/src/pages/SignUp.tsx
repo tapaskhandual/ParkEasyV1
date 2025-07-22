@@ -199,6 +199,18 @@ const SignUp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      {/* Emergency Session Clear - Always visible */}
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          type="button"
+          onClick={clearSession}
+          className="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded shadow-lg"
+          title="Clear any stuck sessions"
+        >
+          🚨 Emergency Clear
+        </button>
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <Car className="h-12 w-12 text-blue-600" />
