@@ -239,7 +239,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Reset state
     setUser(null)
-    setUserProfile(null)
+    setSupabaseUser(null)
     setLoading(false)
     
     console.log('✅ Session cleared successfully')
