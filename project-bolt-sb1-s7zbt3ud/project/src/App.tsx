@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
-import { simpleDbTest } from './lib/supabase'
+import { checkAuthIssues } from './lib/supabase'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
@@ -12,10 +12,10 @@ import MapView from './pages/MapView'
 import PaymentSuccess from './pages/PaymentSuccess'
 
 function App() {
-  // Test database connection on app startup
+  // Test database and auth setup on app startup
   React.useEffect(() => {
     const runDiagnostics = async () => {
-      console.log('🔍 Testing Supabase database connection...')
+      console.log('🔍 Running comprehensive Supabase diagnostics...')
       
       // Check environment variables first
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -33,43 +33,38 @@ function App() {
         return
       }
       
-      const dbTest = await simpleDbTest()
+      // Run comprehensive auth diagnostics
+      const authCheck = await checkAuthIssues()
       
-      if (dbTest.success) {
-        console.log('✅ Database connection successful')
-      } else {
-        console.error('❌ Database issue detected:', dbTest.message)
-        
-        // Provide specific guidance based on error code
-        if (dbTest.code === 'TABLES_MISSING') {
-          console.error('Database tables are missing!')
-          alert('❌ CRITICAL: Database Setup Required!\n\n' +
-                'Your Supabase database is missing the required tables.\n\n' +
-                'STEPS TO FIX:\n' +
-                '1. Go to your Supabase dashboard\n' +
-                '2. Navigate to SQL Editor\n' +
-                '3. Create a new query\n' +
-                '4. Copy the ENTIRE setup-database.sql content\n' +
-                '5. Paste and RUN the script\n' +
-                '6. Refresh this page\n\n' +
-                'Without these tables, user signup will fail.')
-        } else if (dbTest.code === 'DB_ERROR') {
-          alert('❌ Database Configuration Error!\n\n' +
-                'There\'s an issue with your Supabase database.\n\n' +
-                'POSSIBLE CAUSES:\n' +
-                '- RLS policies not set correctly\n' +
-                '- Database permissions issues\n' +
-                '- Corrupted database schema\n\n' +
-                'Check the console for detailed error messages.')
+      console.log('🔧 Auth diagnostics results:', authCheck)
+      
+      // Display results
+      authCheck.issues.forEach(issue => {
+        if (issue.startsWith('✅')) {
+          console.log(issue)
         } else {
-          alert('❌ Connection Error!\n\n' +
-                'Cannot connect to your Supabase project.\n\n' +
-                'POSSIBLE CAUSES:\n' +
-                '- Wrong Supabase URL/Key\n' +
-                '- Project is paused or deleted\n' +
-                '- Network connectivity issues\n\n' +
-                'Verify your Supabase project status.')
+          console.error(issue)
         }
+      })
+      
+      if (!authCheck.success || authCheck.issues.some(i => i.includes('does not exist'))) {
+        console.error('❌ CRITICAL: Database setup issues detected!')
+        
+        const missingTables = authCheck.issues.filter(i => i.includes('does not exist')).length
+        
+        alert(`❌ CRITICAL DATABASE ISSUE DETECTED!\n\n` +
+              `Missing ${missingTables} required database tables.\n\n` +
+              `This is why signup fails with "Database error saving new user".\n\n` +
+              `IMMEDIATE FIX REQUIRED:\n` +
+              `1. Go to: https://supabase.com/dashboard/project/qbgjencsmwemxxqhsjlg/sql/new\n` +
+              `2. Copy the COMPLETE setup-database.sql script\n` +
+              `3. Paste and RUN it in SQL Editor\n` +
+              `4. Wait for all queries to complete\n` +
+              `5. Refresh this page\n\n` +
+              `Recommendation: ${authCheck.recommendation}`)
+      } else {
+        console.log('✅ Basic database structure appears correct')
+        console.log('ℹ️ If signup still fails, there may be trigger/constraint issues')
       }
     }
     

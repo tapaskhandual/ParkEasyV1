@@ -481,3 +481,54 @@ export const comprehensiveDiagnostics = async () => {
     return results
   }
 }
+
+// Check for problematic triggers and constraints
+export const checkAuthIssues = async () => {
+  try {
+    console.log('🔍 Checking for auth issues...')
+    
+    // This will help us understand what's causing the auth error
+    const issues = []
+    
+    // Test 1: Check if user_profiles table exists
+    const { error: profilesError } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .limit(1)
+    
+    if (profilesError) {
+      if (profilesError.code === '42P01') {
+        issues.push('❌ user_profiles table does not exist')
+      } else {
+        issues.push(`❌ user_profiles error: ${profilesError.message}`)
+      }
+    } else {
+      issues.push('✅ user_profiles table exists')
+    }
+    
+    // Test 2: Check if we can access other tables
+    const tables = ['parking_spaces', 'bookings', 'payments', 'admin_settings']
+    for (const table of tables) {
+      const { error } = await supabase.from(table).select('id').limit(1)
+      if (error && error.code === '42P01') {
+        issues.push(`❌ ${table} table does not exist`)
+      } else if (!error) {
+        issues.push(`✅ ${table} table exists`)
+      }
+    }
+    
+    return {
+      success: issues.filter(i => i.startsWith('✅')).length > 0,
+      issues,
+      recommendation: issues.some(i => i.includes('does not exist')) 
+        ? 'Run the complete setup-database.sql script in Supabase SQL Editor'
+        : 'Database tables exist, but there may be trigger or constraint issues'
+    }
+  } catch (error) {
+    return {
+      success: false,
+      issues: [`❌ Error checking database: ${error.message}`],
+      recommendation: 'Check Supabase connection and credentials'
+    }
+  }
+}
