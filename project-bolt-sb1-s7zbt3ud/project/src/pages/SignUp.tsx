@@ -73,7 +73,7 @@ const SignUp: React.FC = () => {
     }
 
     try {
-      await signUp(formData.email, formData.password, {
+      const result = await signUp(formData.email, formData.password, {
         user_type: formData.user_type,
         full_name: formData.full_name.trim(),
         phone_number: formData.phone_number.trim(),
@@ -87,10 +87,17 @@ const SignUp: React.FC = () => {
         bank_account_holder_name: formData.user_type === 'owner' ? formData.bank_account_holder_name.trim() || null : null,
       })
       
-      setSuccess('Account created successfully! Please check your email to verify your account.')
-      setTimeout(() => {
-        navigate('/dashboard')
-      }, 2000)
+      // Handle different signup outcomes
+      if (result && result.needsEmailConfirmation) {
+        setSuccess('Account created! Please check your email to verify your account before signing in.')
+        // Don't navigate yet - user needs to confirm email first
+      } else {
+        setSuccess('Account created successfully!')
+        setTimeout(() => {
+          navigate('/dashboard')
+        }, 2000)
+      }
+      
     } catch (error: any) {
       console.error('Sign up error:', error)
       
@@ -98,7 +105,11 @@ const SignUp: React.FC = () => {
       let errorMessage = 'Failed to create account'
       
       if (error.message) {
-        if (error.message.includes('User already registered') || error.message.includes('already exists')) {
+        if (error.message.includes('Database configuration issue')) {
+          errorMessage = 'Database setup issue detected. Please contact support or try again later.'
+        } else if (error.message.includes('Database error saving new user')) {
+          errorMessage = 'Server configuration issue. Please contact support or try again later.'
+        } else if (error.message.includes('User already registered') || error.message.includes('already exists')) {
           errorMessage = 'An account with this email already exists. Please sign in instead.'
         } else if (error.message.includes('Password should be at least')) {
           errorMessage = 'Password must be at least 6 characters long'
@@ -106,12 +117,14 @@ const SignUp: React.FC = () => {
           errorMessage = 'Please enter a valid email address'
         } else if (error.message.includes('phone_number') || error.message.includes('Phone number')) {
           errorMessage = 'Phone number is already registered. Please use a different phone number.'
+        } else if (error.message.includes('Signup is disabled')) {
+          errorMessage = 'New user registration is currently disabled. Please contact support.'
         } else if (error.message.includes('Missing required information')) {
           errorMessage = 'Please fill in all required fields'
         } else if (error.message.includes('Invalid data format')) {
           errorMessage = 'Please check your inputs and try again'
-        } else if (error.message.includes('Database error')) {
-          errorMessage = 'Database error occurred. Please try again or contact support.'
+        } else if (error.message.includes('Authentication error')) {
+          errorMessage = error.message
         } else {
           errorMessage = error.message
         }

@@ -15,27 +15,77 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
-// Test database connection
+// Test database connection and auth setup
 export const testDatabaseConnection = async () => {
   try {
-    const { data, error } = await supabase
+    // Test 1: Check if user_profiles table exists
+    const { data: tableCheck, error: tableError } = await supabase
       .from('user_profiles')
       .select('count(*)')
       .limit(1)
     
-    if (error) {
-      console.error('Database connection test failed:', error)
-      if (error.code === '42P01') {
+    if (tableError) {
+      console.error('Database table check failed:', tableError)
+      if (tableError.code === '42P01') {
         throw new Error('Database tables not found. Please run the setup-database.sql script in your Supabase SQL editor.')
       }
-      throw new Error(`Database error: ${error.message}`)
+      throw new Error(`Database error: ${tableError.message}`)
     }
     
-    console.log('Database connection successful')
+    // Test 2: Check auth configuration
+    const { data: authUser } = await supabase.auth.getUser()
+    console.log('Auth service accessible:', !!authUser)
+    
+    // Test 3: Check RLS policies
+    const { data: rlsCheck, error: rlsError } = await supabase
+      .rpc('has_table_privilege', { 
+        table_name: 'user_profiles', 
+        privilege: 'INSERT' 
+      })
+      .single()
+    
+    console.log('Database connection successful', {
+      tablesExist: true,
+      authAccessible: !!authUser,
+      insertPrivileges: !rlsError
+    })
+    
     return true
   } catch (error) {
     console.error('Database connection test error:', error)
     throw error
+  }
+}
+
+// Diagnose auth issues
+export const diagnoseAuthIssues = async () => {
+  try {
+    // Check if we can access auth metadata
+    const { data, error } = await supabase.auth.getSession()
+    console.log('Auth session check:', { hasSession: !!data.session, error })
+    
+    // Test basic database connectivity
+    const { data: basicTest, error: basicError } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .limit(1)
+    
+    console.log('Basic database test:', { success: !basicError, error: basicError })
+    
+    return {
+      authAccessible: !error,
+      databaseAccessible: !basicError,
+      recommendation: basicError?.code === '42P01' 
+        ? 'Run setup-database.sql in Supabase SQL editor'
+        : 'Check Supabase project status and credentials'
+    }
+  } catch (error) {
+    console.error('Auth diagnosis failed:', error)
+    return {
+      authAccessible: false,
+      databaseAccessible: false,
+      recommendation: 'Check Supabase project status and credentials'
+    }
   }
 }
 
