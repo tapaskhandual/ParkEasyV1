@@ -15,18 +15,97 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+// Test database connection
+export const testDatabaseConnection = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('count(*)')
+      .limit(1)
+    
+    if (error) {
+      console.error('Database connection test failed:', error)
+      if (error.code === '42P01') {
+        throw new Error('Database tables not found. Please run the setup-database.sql script in your Supabase SQL editor.')
+      }
+      throw new Error(`Database error: ${error.message}`)
+    }
+    
+    console.log('Database connection successful')
+    return true
+  } catch (error) {
+    console.error('Database connection test error:', error)
+    throw error
+  }
+}
+
 // Helper functions for database operations
 export const dbHelpers = {
   // User Profile Operations
   async createUserProfile(userId: string, profileData: any) {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .insert([{ id: userId, ...profileData }])
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data
+    try {
+      // Validate required fields
+      if (!userId) {
+        throw new Error('User ID is required')
+      }
+      
+      if (!profileData.full_name || !profileData.full_name.trim()) {
+        throw new Error('Full name is required')
+      }
+
+      // Ensure user_type is valid
+      const validUserTypes = ['customer', 'owner', 'admin']
+      if (!validUserTypes.includes(profileData.user_type)) {
+        throw new Error('Invalid user type')
+      }
+
+      // Clean the data
+      const cleanData = {
+        id: userId,
+        user_type: profileData.user_type,
+        full_name: profileData.full_name.trim(),
+        phone_number: profileData.phone_number || null,
+        address: profileData.address || null,
+        city: profileData.city || null,
+        state: profileData.state || null,
+        pincode: profileData.pincode || null,
+        upi_id: profileData.upi_id || null,
+        bank_account_number: profileData.bank_account_number || null,
+        bank_ifsc_code: profileData.bank_ifsc_code || null,
+        bank_account_holder_name: profileData.bank_account_holder_name || null,
+        is_verified: profileData.is_verified || false
+      }
+
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .insert([cleanData])
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database error creating user profile:', error)
+        
+        // Handle specific database errors
+        if (error.code === '23505') {
+          if (error.message.includes('phone_number')) {
+            throw new Error('Phone number is already registered. Please use a different phone number.')
+          } else {
+            throw new Error('A user with this information already exists.')
+          }
+        } else if (error.code === '23502') {
+          throw new Error('Missing required information. Please fill in all required fields.')
+        } else if (error.code === '23514') {
+          throw new Error('Invalid data format. Please check your inputs.')
+        } else {
+          throw new Error(`Database error: ${error.message}`)
+        }
+      }
+      
+      return data
+    } catch (error) {
+      console.error('Error in createUserProfile:', error)
+      throw error
+    }
   },
 
   async getUserProfile(userId: string) {

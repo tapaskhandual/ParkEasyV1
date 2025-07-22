@@ -102,9 +102,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error
 
+      if (data.user && !data.user.email_confirmed_at) {
+        // For email confirmation flow, don't create profile yet
+        console.log('User created, waiting for email confirmation')
+        return
+      }
+
       if (data.user) {
+        // Clean and validate userData before database insertion
+        const cleanUserData = {
+          user_type: userData.user_type || 'customer',
+          full_name: userData.full_name?.trim() || '',
+          phone_number: userData.phone_number?.trim() || null,
+          address: userData.address?.trim() || null,
+          city: userData.city?.trim() || null,
+          state: userData.state?.trim() || null,
+          pincode: userData.pincode?.trim() || null,
+          upi_id: userData.user_type === 'owner' ? userData.upi_id?.trim() || null : null,
+          bank_account_number: userData.user_type === 'owner' ? userData.bank_account_number?.trim() || null : null,
+          bank_ifsc_code: userData.user_type === 'owner' ? userData.bank_ifsc_code?.trim() || null : null,
+          bank_account_holder_name: userData.user_type === 'owner' ? userData.bank_account_holder_name?.trim() || null : null,
+          is_verified: false
+        }
+
+        // Validate required fields
+        if (!cleanUserData.full_name) {
+          throw new Error('Full name is required')
+        }
+
         // Create user profile
-        await dbHelpers.createUserProfile(data.user.id, userData)
+        await dbHelpers.createUserProfile(data.user.id, cleanUserData)
       }
     } catch (error) {
       console.error('Error signing up:', error)

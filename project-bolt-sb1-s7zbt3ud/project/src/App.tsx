@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { testDatabaseConnection } from './lib/supabase'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
@@ -11,6 +12,14 @@ import MapView from './pages/MapView'
 import PaymentSuccess from './pages/PaymentSuccess'
 
 function App() {
+  // Test database connection on app startup
+  React.useEffect(() => {
+    testDatabaseConnection().catch(error => {
+      console.error('Database setup issue:', error.message)
+      alert('Database setup required. Please check the console and run setup-database.sql in Supabase.')
+    })
+  }, [])
+
   return (
     <AuthProvider>
       <Router>

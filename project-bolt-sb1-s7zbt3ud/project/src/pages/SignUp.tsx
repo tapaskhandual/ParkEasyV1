@@ -86,7 +86,11 @@ const SignUp: React.FC = () => {
         bank_ifsc_code: formData.user_type === 'owner' ? formData.bank_ifsc_code.trim() || null : null,
         bank_account_holder_name: formData.user_type === 'owner' ? formData.bank_account_holder_name.trim() || null : null,
       })
-      navigate('/dashboard')
+      
+      setSuccess('Account created successfully! Please check your email to verify your account.')
+      setTimeout(() => {
+        navigate('/dashboard')
+      }, 2000)
     } catch (error: any) {
       console.error('Sign up error:', error)
       
@@ -94,14 +98,20 @@ const SignUp: React.FC = () => {
       let errorMessage = 'Failed to create account'
       
       if (error.message) {
-        if (error.message.includes('User already registered')) {
+        if (error.message.includes('User already registered') || error.message.includes('already exists')) {
           errorMessage = 'An account with this email already exists. Please sign in instead.'
         } else if (error.message.includes('Password should be at least')) {
           errorMessage = 'Password must be at least 6 characters long'
         } else if (error.message.includes('Invalid email')) {
           errorMessage = 'Please enter a valid email address'
-        } else if (error.message.includes('phone_number')) {
-          errorMessage = 'Phone number is already taken. Please use a different phone number.'
+        } else if (error.message.includes('phone_number') || error.message.includes('Phone number')) {
+          errorMessage = 'Phone number is already registered. Please use a different phone number.'
+        } else if (error.message.includes('Missing required information')) {
+          errorMessage = 'Please fill in all required fields'
+        } else if (error.message.includes('Invalid data format')) {
+          errorMessage = 'Please check your inputs and try again'
+        } else if (error.message.includes('Database error')) {
+          errorMessage = 'Database error occurred. Please try again or contact support.'
         } else {
           errorMessage = error.message
         }
